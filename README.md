@@ -1,2 +1,0 @@
-# laudos
-Laudos de Radiologia
