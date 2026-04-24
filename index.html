@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laudos Radiológicos — Automatizador</title>
+    <style>
+        :root {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #21252b;
+            --bg-tertiary: #2c313a;
+            --bg-input: #1a1d23;
+            --border: #3a3f4b;
+            --border-light: #4a505d;
+            --text-primary: #cdd6e0;
+            --text-secondary: #8b949e;
+            --text-muted: #6b7280;
+            --accent: #4d8cd9;
+            --accent-hover: #5b9bd5;
+            --accent-dark: #3a6fad;
+            --accent-glow: rgba(77, 140, 217, 0.25);
+            --danger: #e0556a;
+            --danger-hover: #e8707e;
+            --success: #4caf84;
+            --warning: #d4a843;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            --font-sans: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+            --sidebar-width: 340px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: 0.01em;
+        }
+
+        /* ========== HEADER ========== */
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            min-height: 54px;
+        }
+
+        .app-header .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-header .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), #3a6fad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+
+        .app-header h1 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .app-header .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.01em;
+            font-family: var(--font-sans);
+        }
+        .btn:hover {
+            background: #363d48;
+            border-color: var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn:active {
+            transform: scale(0.97);
+            transition: 0.08s;
+        }
+        .btn.btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        .btn.btn-accent:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .btn.btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-light);
+        }
+        .btn.btn-outline:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--text-muted);
+        }
+        .btn.btn-sm {
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            border-radius: 4px;
+        }
+        .btn.btn-xs {
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            border-radius: 3px;
+            gap: 3px;
+        }
+        .btn.btn-icon {
+            padding: 6px 8px;
+            min-width: 32px;
+            justify-content: center;
+            gap: 0;
+        }
+        .btn.btn-danger-text {
+            background: transparent;
+            border-color: transparent;
+            color: var(--danger);
+        }
+        .btn.btn-danger-text:hover {
+            background: rgba(224, 85, 106, 0.1);
+            border-color: transparent;
+        }
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* ========== MAIN LAYOUT ========== */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+        }
+        .sidebar-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sidebar-search {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .sidebar-search input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 7px 10px;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+        .sidebar-search input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .sidebar-search input::placeholder {
+            color: var(--text-muted);
+        }
+        .sidebar-search .search-clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: all var(--transition);
+            flex-shrink: 0;
+            display: none;
+        }
+        .sidebar-search .search-clear-btn.visible {
+            display: block;
+        }
+        .sidebar-search .search-clear-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 10px 16px;
+            scroll-behavior: smooth;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--border-light);
+        }
+
+        .category-group {
+            margin-bottom: 6px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+        }
+        .category-group.open {
+            border-color: var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .category-group.hidden-by-search {
+            display: none !important;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: background var(--transition);
+            gap: 6px;
+            border-radius: var(--radius-sm);
+        }
+        .category-header:hover {
+            background: #353b47;
+        }
+        .category-header .cat-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .category-header .cat-icon {
+            font-size: 0.7rem;
+            transition: transform var(--transition);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .category-group.open .cat-icon {
+            transform: rotate(90deg);
+        }
+        .category-header .cat-name {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .category-header .cat-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg-input);
+            padding: 2px 8px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .category-header .cat-actions {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+        .category-header:hover .cat-actions {
+            opacity: 1;
+        }
+        .cat-actions .btn-icon-only {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+        .cat-actions .btn-icon-only:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+        }
+        .cat-actions .btn-icon-only.delete-cat:hover {
+            color: var(--danger);
+            background: rgba(224, 85, 106, 0.12);
+        }
+
+        .category-phrases {
+            display: none;
+            padding: 0 8px 8px;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .category-group.open .category-phrases {
+            display: flex;
+        }
+
+        .phrase-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            border: 1px solid transparent;
+            background: var(--bg-input);
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+        .phrase-item:hover {
+            background: #2d3540;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent-glow);
+            transform: translateX(2px);
+        }
+        .phrase-item:active {
+            background: #3a4554;
+            transform: scale(0.985);
+            transition: 0.06s;
+        }
+        .phrase-item.hidden-by-search {
+            display: none !important;
+        }
+        .phrase-item .phrase-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .phrase-item .phrase-actions {
+            display: flex;
+            gap: 1px;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+        .phrase-item:hover .phrase-actions {
+            opacity: 1;
+        }
+        .phrase-actions .btn-icon-micro {
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border-radius: 3px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+        .phrase-actions .btn-icon-micro:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+        }
+        .phrase-actions .btn-icon-micro.delete-phrase:hover {
+            color: var(--danger);
+            background: rgba(224, 85, 106, 0.12);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .empty-state .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .add-category-btn-area {
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+        }
+        .add-category-btn-area .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* ========== EDITOR AREA ========== */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
+            row-gap: 8px;
+        }
+        .editor-toolbar .tool-group {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+        }
+        .editor-toolbar .tool-divider {
+            width: 1px;
+            background: var(--border);
+            margin: 0 6px;
+            height: 28px;
+            align-self: center;
+            border-radius: 1px;
+        }
+        .tool-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
+            font-weight: 500;
+            position: relative;
+        }
+        .tool-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+        .tool-btn:active,
+        .tool-btn.active {
+            background: var(--accent-dark);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 0 6px var(--accent-glow);
+        }
+        .tool-btn.bold-btn { font-weight: 700; }
+        .tool-btn.italic-btn { font-style: italic; font-family: 'Georgia', 'Times New Roman', serif; }
+        .tool-btn.underline-btn { text-decoration: underline; }
+        .tool-btn.clear-btn {
+            width: auto;
+            padding: 0 10px;
+            font-size: 0.75rem;
+            color: var(--danger);
+            font-weight: 500;
+        }
+        .tool-btn.clear-btn:hover {
+            background: rgba(224, 85, 106, 0.1);
+            border-color: var(--danger);
+            color: var(--danger-hover);
+        }
+        .tool-btn.align-left-btn::before { content: '⫷'; }
+        .tool-btn.align-center-btn::before { content: '⫸'; }
+        .tool-btn.align-right-btn::before { content: '⫹'; }
+        .tool-btn.align-justify-btn::before { content: '☰'; }
+        .tool-btn.indent-btn::before { content: '↘'; }
+        .tool-btn.outdent-btn::before { content: '↖'; }
+        .color-btn {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .color-btn input[type="color"] {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 3px;
+        }
+        .color-btn input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-btn input[type="color"]::-webkit-color-swatch {
+            border: 1px solid var(--border);
+            border-radius: 3px;
+        }
+        .tool-btn.save-selection-btn {
+            width: auto;
+            padding: 0 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent);
+        }
+        .tool-btn.save-selection-btn:hover {
+            background: rgba(77, 140, 217, 0.15);
+            border-color: var(--accent);
+            color: var(--accent-hover);
+        }
+        .line-spacing-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 2px;
+            margin-right: 2px;
+            align-self: center;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        select.line-spacing-select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            padding: 4px 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            outline: none;
+            height: 32px;
+            transition: border-color var(--transition);
+        }
+        select.line-spacing-select:focus {
+            border-color: var(--accent);
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            display: flex;
+            justify-content: center;
+        }
+        .editor-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        .editor-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .editor-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        .editor-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--border-light);
+        }
+
+        .editor-paper {
+            width: 100%;
+            max-width: 800px;
+            min-height: 100%;
+            background: #232730;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px 36px;
+            box-shadow: var(--shadow-lg);
+            outline: none;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text-primary);
+            letter-spacing: 0.015em;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .editor-paper:focus {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg), 0 0 0 3px var(--accent-glow);
+        }
+        .editor-paper:empty::before {
+            content: 'Digite ou monte seu laudo aqui...\A\AUse as frases do painel lateral para agilizar a construção.';
+            white-space: pre-wrap;
+            color: var(--text-muted);
+            pointer-events: none;
+            font-style: italic;
+            line-height: 1.75;
+        }
+        .editor-paper h2,
+        .editor-paper strong {
+            font-weight: 700;
+            color: #e8ecf2;
+        }
+        .editor-paper em {
+            font-style: italic;
+            color: #c5d0dc;
+        }
+        .editor-paper u {
+            text-decoration: underline;
+            text-decoration-color: var(--accent);
+            text-underline-offset: 3px;
+        }
+        .editor-paper ul,
+        .editor-paper ol {
+            padding-left: 24px;
+            margin: 8px 0;
+        }
+        .editor-paper li {
+            margin-bottom: 4px;
+        }
+
+        .editor-status {
+            padding: 6px 16px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            flex-shrink: 0;
+            border-top: 1px solid transparent;
+            transition: all var(--transition);
+        }
+        .editor-status.saved {
+            color: var(--success);
+        }
+
+        /* ========== MODAL ========== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            width: 90%;
+            max-width: 460px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(12px);
+            transition: transform var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+        .modal-box h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .modal-box label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .modal-box input,
+        .modal-box textarea,
+        .modal-box select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            outline: none;
+        }
+        .modal-box input:focus,
+        .modal-box textarea:focus,
+        .modal-box select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .modal-box textarea {
+            min-height: 80px;
+            line-height: 1.5;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .modal-box .error-msg {
+            color: var(--danger);
+            font-size: 0.75rem;
+            min-height: 18px;
+        }
+
+        /* ========== TOAST ========== */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            pointer-events: all;
+            animation: slideInRight 0.35s ease-out, fadeOutRight 0.35s ease-in forwards;
+            animation-delay: 0s, 2.5s;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.info { border-left: 4px solid var(--accent); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(60%); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; min-width: unset; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 1; }
+            .main-container { flex-direction: column; }
+            .editor-toolbar { gap: 4px; padding: 8px 10px; }
+            .tool-btn { width: 28px; height: 28px; font-size: 0.75rem; }
+            .editor-paper { padding: 20px; font-size: 0.88rem; }
+            .app-header h1 { font-size: 0.95rem; }
+            .btn { padding: 6px 10px; font-size: 0.75rem; }
+            .modal-box { width: 95%; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon">🩻</div>
+            <h1>Laudos - Radiologia - Rafael Barbosa V0.6</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline btn-sm" id="btnExport">📥 Exportar Frases</button>
+            <button class="btn btn-outline btn-sm" id="btnImport">📤 Importar Frases</button>
+            <button class="btn btn-outline btn-sm" id="btnClearEditor">🗑️ Limpar Laudo</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📋 Banco de Frases</h3>
+                <button class="btn btn-xs btn-accent" id="btnAddCategory">+ Categoria</button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="searchInput" placeholder="🔍 Pesquisar frases..." autocomplete="off">
+                <button class="search-clear-btn" id="searchClearBtn" title="Limpar pesquisa">✕</button>
+            </div>
+            <div class="sidebar-scroll" id="sidebarScroll"></div>
+            <div class="add-category-btn-area">
+                <button class="btn btn-accent btn-sm" id="btnAddCategoryBottom">➕ Nova Categoria</button>
+            </div>
+        </aside>
+
+        <main class="editor-area">
+            <div class="editor-toolbar" id="editorToolbar">
+                <!-- Estilo de fonte -->
+                <div class="tool-group">
+                    <button class="tool-btn bold-btn" data-command="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+                    <button class="tool-btn italic-btn" data-command="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+                    <button class="tool-btn underline-btn" data-command="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Cor do texto -->
+                <div class="tool-group">
+                    <span class="tool-btn color-btn" title="Cor do texto">
+                        <span style="font-size:0.8rem;">🎨</span>
+                        <input type="color" id="foreColorPicker" value="#cdd6e0" title="Selecionar cor do texto">
+                    </span>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Alinhamento -->
+                <div class="tool-group">
+                    <button class="tool-btn align-left-btn" data-command="justifyLeft" title="Alinhar à esquerda"></button>
+                    <button class="tool-btn align-center-btn" data-command="justifyCenter" title="Centralizar"></button>
+                    <button class="tool-btn align-right-btn" data-command="justifyRight" title="Alinhar à direita"></button>
+                    <button class="tool-btn align-justify-btn" data-command="justifyFull" title="Justificar"></button>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Recuo / Tabulação -->
+                <div class="tool-group">
+                    <button class="tool-btn indent-btn" data-command="indent" title="Aumentar recuo"></button>
+                    <button class="tool-btn outdent-btn" data-command="outdent" title="Diminuir recuo"></button>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Espaçamento entre linhas -->
+                <div class="tool-group">
+                    <span class="tool-btn line-spacing-label">↕️</span>
+                    <select class="line-spacing-select" id="lineSpacingSelect" title="Espaçamento entre linhas">
+                        <option value="1.0">1.0</option>
+                        <option value="1.5" selected>1.5</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.0">3.0</option>
+                    </select>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Listas -->
+                <div class="tool-group">
+                    <button class="tool-btn" data-command="insertUnorderedList" title="Lista com marcadores">•≡</button>
+                    <button class="tool-btn" data-command="insertOrderedList" title="Lista numerada">1.</button>
+                </div>
+                <span class="tool-divider"></span>
+                <!-- Títulos -->
+                <div class="tool-group">
+                    <button class="tool-btn" data-command="formatBlock" data-value="h2" title="Título (H2)">H2</button>
+                    <button class="tool-btn" data-command="formatBlock" data-value="p" title="Parágrafo normal">¶</button>
+                </div>
+                <span class="tool-divider"></span>
+                <button class="tool-btn clear-btn" data-command="removeFormat" title="Limpar formatação da seleção">🧹 Limpar formatação</button>
+                <span class="tool-divider"></span>
+                <button class="tool-btn save-selection-btn" id="btnSaveSelectionAsPhrase" title="Salvar texto selecionado como frase formatada">💾 Salvar seleção ▼</button>
+            </div>
+            <div class="editor-wrapper">
+                <div class="editor-paper" id="editor" contenteditable="true" spellcheck="true"></div>
+            </div>
+            <div class="editor-status" id="editorStatus">💾 Salvamento automático ativo</div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box" id="modalBox">
+            <h3 id="modalTitle">Modal</h3>
+            <div id="modalBody"></div>
+            <p class="error-msg" id="modalError"></p>
+            <div class="modal-actions" id="modalActions"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <input type="file" id="importFileInput" accept=".json" style="display:none;">
+
+    <script>
+        (function() {
+            // DOM refs
+            const editor = document.getElementById('editor');
+            const sidebarScroll = document.getElementById('sidebarScroll');
+            const editorStatus = document.getElementById('editorStatus');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalError = document.getElementById('modalError');
+            const modalActions = document.getElementById('modalActions');
+            const toastContainer = document.getElementById('toastContainer');
+            const importFileInput = document.getElementById('importFileInput');
+            const searchInput = document.getElementById('searchInput');
+            const searchClearBtn = document.getElementById('searchClearBtn');
+            const lineSpacingSelect = document.getElementById('lineSpacingSelect');
+            const foreColorPicker = document.getElementById('foreColorPicker');
+            const btnSaveSelection = document.getElementById('btnSaveSelectionAsPhrase');
+
+            const STORAGE_KEY_CATEGORIES = 'laudos_radiologicos_categories';
+            const STORAGE_KEY_EDITOR = 'laudos_radiologicos_editor_content';
+            const STORAGE_KEY_OPEN_CATS = 'laudos_radiologicos_open_categories';
+
+            let categories = [];
+            let openCategories = new Set();
+            let modalResolve = null;
+            let saveTimeout = null;
+            let searchQuery = '';
+
+            const defaultCategories =[
+  {
+    "id": "cat_1776997385114",
+    "name": "Radiografia",
+    "phrases": [
+      {
+        "id": "phr_1776997407522",
+        "text": "RADIOGRAFIA DA MÃO \n(AP e Perfil)\n\n• Ossos de morfologia e textura normais.\n• Relações articulares preservadas.\n• Partes moles sem alterações radiográficas significativas.\n\n• Ossos de morfologia e textura normais.\n• Relações articulares preservadas.\n• Partes moles sem alterações radiográficas significativas."
+      },
+      {
+        "id": "phr_1776997626637",
+        "text": "• Leves alterações degenerativas caracterizadas por osteófitos marginais, esclerose subcondral e redução do espaço articular, notadamente em articulações interfalangeanas."
+      },
+      {
+        "id": "phr_1776997643862",
+        "text": "Foram observadas características fora dos limites da normalidade, conforme descrito na análise."
+      },
+      {
+        "id": "phr_1776997656437",
+        "text": "RADIOGRAFIA DA COLUNA LOMBAR\n(AP e Perfil)\n    \n• Não há desvio lateral significativo do eixo da coluna lombar.\n    • Ausência de alterações ósseas morfológicas e texturais significativas.\n    • Espaços intervertebrais conservados.\n    • Os corpos vertebrais possuem alturas e alinhamentos posteriores preservados.\n    • Lordose lombar exibindo ângulo de xx° (VN: 46° + 11° / 41° + 11°).\n    • Ângulo de inclinação sacral (IS) medindo xx° (VN = 35 – 45º).\n    • Partes moles sem alterações radiográficas significativas."
+      },
+      {
+        "id": "phr_1776997721587",
+        "text": "RADIOGRAFIAS DOS SEIOS DA FACE\n\nRELATÓRIO\n   \n• Estruturas ósseas íntegras, com textura mantida.\n    • Seios paranasais com aeração usual e de morfologia habitual para faixa etária.\n    • Septo nasal bem posicionado / centrado."
+      },
+      {
+        "id": "phr_1776997744005",
+        "text": "Alterações degenerativas osteodiscogênicas em coluna lombar caracterizadas por formações osteofitárias marginais em corpos vertebrais associado a redução do espaço discal e esclerose das placas terminais apostas notadamente em T12-L1 e L5-S1."
+      },
+      {
+        "id": "phr_1776997751215",
+        "text": "Discreto deslizamento posterior de L2 sobre L3 (retrolistese) percorrendo menos de 25% do diâmetro anteroposterior de L3, sem evidências definitivas de lise dos istmos interapofisários ao método."
+      },
+      {
+        "id": "phr_1776997789349",
+        "text": "RIZARTROSE \n   • Alterações degenerativas iniciais envolvendo a articulação trapeziometacarpiana, caracterizadas por formações osteofitárias marginais, redução do espaço articular e esclerose subcondral.\n    • Alterações degenerativas envolvendo algumas articulações interfalangeanas caracterizadas por redução dos espaços articulares e tênues formações osteofitárias marginais.\n    • Demais ossos de morfologia e textura normais.\n    • Partes moles sem alterações radiográficas."
+      },
+      {
+        "id": "phr_1776997852711",
+        "text": "Obs.: Não foram caracterizados sinais definitivos de fraturas nas grafias avaliadas. Diante de forte suspeita clínica de fraturas, deve-se prosseguir investigação diagnóstica."
+      },
+      {
+        "id": "phr_1776997868347",
+        "text": "RADIOGRAFIA DO GRADIL COSTAL\n(AP e perfil)\n\n    • Não se evidenciam pneumotórax ou derrame pleural.\n    • Seios costofrênicos livres.\n    • Não foram caracterizados sinais definitivos de fraturas de arcos costais.\n    • Partes moles sem alterações significativas."
+      },
+      {
+        "id": "phr_1776997925774",
+        "text": "OSTEOPENIA\nLeve redução difusa de densidade das estruturas ósseas que pode representar desmineralização óssea."
+      }
+    ]
+  }
+]
+
+            // Persistence
+            function loadCategories() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length > 0) { categories = parsed; return; }
+                    }
+                } catch (e) {}
+                categories = JSON.parse(JSON.stringify(defaultCategories));
+                saveCategories();
+            }
+
+            function saveCategories() {
+                try { localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories)); } catch (e) { showToast('Erro ao salvar categorias.', 'error'); }
+            }
+
+            function loadOpenCategories() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY_OPEN_CATS);
+                    if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) { openCategories = new Set(arr); return; } }
+                } catch (e) {}
+                if (categories.length > 0) {
+                    openCategories.add(categories[0].id);
+                    if (categories.length > 1) openCategories.add(categories[1].id);
+                }
+            }
+
+            function saveOpenCategories() {
+                try { localStorage.setItem(STORAGE_KEY_OPEN_CATS, JSON.stringify([...openCategories])); } catch (e) {}
+            }
+
+            function loadEditorContent() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY_EDITOR);
+                    if (raw) editor.innerHTML = raw;
+                } catch (e) {}
+            }
+
+            function saveEditorContent() {
+                try {
+                    localStorage.setItem(STORAGE_KEY_EDITOR, editor.innerHTML);
+                    editorStatus.textContent = '💾 Salvo ' + new Date().toLocaleTimeString();
+                    editorStatus.classList.add('saved');
+                    setTimeout(() => editorStatus.classList.remove('saved'), 2000);
+                } catch (e) {}
+            }
+
+            function scheduleEditorSave() {
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveEditorContent, 600);
+            }
+
+            // Toast
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                const icons = { success: '✅', info: 'ℹ️', warning: '⚠️', error: '❌' };
+                toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
+                toastContainer.appendChild(toast);
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+                if (toastContainer.children.length > 5) toastContainer.firstChild.remove();
+            }
+
+            // Modal
+            function openModal(title, bodyHTML, actionsHTML) {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = bodyHTML;
+                modalError.textContent = '';
+                modalActions.innerHTML = actionsHTML;
+                modalOverlay.classList.add('active');
+                setTimeout(() => { const fi = modalBody.querySelector('input, textarea, select'); if (fi) fi.focus(); }, 150);
+                return new Promise(resolve => { modalResolve = resolve; });
+            }
+
+            function closeModal(result = null) {
+                modalOverlay.classList.remove('active');
+                if (modalResolve) { modalResolve(result); modalResolve = null; }
+            }
+
+            function setModalError(msg) { modalError.textContent = msg || ''; }
+
+            // Search
+            function updateSearchClearButton() {
+                searchClearBtn.classList.toggle('visible', searchQuery.length > 0);
+            }
+
+            function filterCategoriesAndPhrases() {
+                const query = searchQuery.trim().toLowerCase();
+                const groups = sidebarScroll.querySelectorAll('.category-group');
+                let anyVisible = false;
+                groups.forEach(group => {
+                    const items = group.querySelectorAll('.phrase-item');
+                    let catVisible = false;
+                    items.forEach(item => {
+                        const textEl = item.querySelector('.phrase-text');
+                        const visibleText = textEl ? textEl.textContent.toLowerCase() : '';
+                        if (!query || visibleText.includes(query)) {
+                            item.classList.remove('hidden-by-search');
+                            catVisible = true;
+                        } else {
+                            item.classList.add('hidden-by-search');
+                        }
+                    });
+                    if (catVisible || !query) {
+                        group.classList.remove('hidden-by-search');
+                        anyVisible = true;
+                    } else {
+                        group.classList.add('hidden-by-search');
+                    }
+                });
+                const existing = sidebarScroll.querySelector('.search-empty-state');
+                if (query && !anyVisible) {
+                    if (!existing) {
+                        const div = document.createElement('div');
+                        div.className = 'empty-state search-empty-state';
+                        div.innerHTML = '<div class="empty-icon">🔍</div><p>Nenhuma frase encontrada.</p>';
+                        sidebarScroll.appendChild(div);
+                    }
+                } else if (existing) existing.remove();
+            }
+
+            // Render sidebar
+            function renderSidebar() {
+                sidebarScroll.innerHTML = '';
+                if (categories.length === 0) {
+                    sidebarScroll.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Nenhuma categoria ainda.</p></div>`;
+                    return;
+                }
+                categories.forEach(cat => {
+                    const group = document.createElement('div');
+                    group.className = 'category-group' + (openCategories.has(cat.id) ? ' open' : '');
+                    group.dataset.catId = cat.id;
+
+                    const header = document.createElement('div');
+                    header.className = 'category-header';
+                    header.innerHTML = `
+                        <span class="cat-title-area">
+                            <span class="cat-icon">▶</span>
+                            <span class="cat-name">${escapeHTML(cat.name)}</span>
+                        </span>
+                        <span class="cat-count">${cat.phrases.length}</span>
+                        <span class="cat-actions">
+                            <button class="btn-icon-only add-phrase-btn" data-cat-id="${cat.id}">➕</button>
+                            <button class="btn-icon-only edit-cat-btn" data-cat-id="${cat.id}">✎</button>
+                            <button class="btn-icon-only delete-cat" data-cat-id="${cat.id}">✕</button>
+                        </span>`;
+
+                    const phrasesDiv = document.createElement('div');
+                    phrasesDiv.className = 'category-phrases';
+
+                    if (cat.phrases.length === 0) {
+                        phrasesDiv.innerHTML = '<div class="empty-state" style="padding:12px;font-size:0.75rem;">Nenhuma frase nesta categoria.</div>';
+                    } else {
+                        cat.phrases.forEach(phrase => {
+                            const item = document.createElement('div');
+                            item.className = 'phrase-item';
+                            item.dataset.phraseId = phrase.id;
+                            item.dataset.catId = cat.id;
+                            // exibe texto puro (sem tags HTML) para manter layout
+                            const plainText = stripHTML(phrase.text);
+                            item.innerHTML = `
+                                <span class="phrase-text" title="${escapeHTML(plainText)}">${escapeHTML(plainText)}</span>
+                                <span class="phrase-actions">
+                                    <button class="btn-icon-micro edit-phrase-btn" data-phrase-id="${phrase.id}" data-cat-id="${cat.id}">✎</button>
+                                    <button class="btn-icon-micro delete-phrase" data-phrase-id="${phrase.id}" data-cat-id="${cat.id}">✕</button>
+                                </span>`;
+                            item.addEventListener('click', (e) => {
+                                if (e.target.closest('button')) return;
+                                insertPhraseIntoEditor(phrase.text);
+                            });
+                            phrasesDiv.appendChild(item);
+                        });
+                    }
+                    group.appendChild(header);
+                    group.appendChild(phrasesDiv);
+                    sidebarScroll.appendChild(group);
+
+                    header.addEventListener('click', (e) => {
+                        if (e.target.closest('button') || e.target.closest('.cat-actions')) return;
+                        toggleCategory(cat.id);
+                    });
+                });
+                attachSidebarEvents();
+                filterCategoriesAndPhrases();
+            }
+
+            function attachSidebarEvents() {
+                sidebarScroll.querySelectorAll('.add-phrase-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openAddPhraseModal(b.dataset.catId); }));
+                sidebarScroll.querySelectorAll('.edit-cat-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openEditCategoryModal(b.dataset.catId); }));
+                sidebarScroll.querySelectorAll('.delete-cat').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); confirmDeleteCategory(b.dataset.catId); }));
+                sidebarScroll.querySelectorAll('.edit-phrase-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openEditPhraseModal(b.dataset.catId, b.dataset.phraseId); }));
+                sidebarScroll.querySelectorAll('.delete-phrase').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); confirmDeletePhrase(b.dataset.catId, b.dataset.phraseId); }));
+            }
+
+            function toggleCategory(catId) {
+                if (openCategories.has(catId)) openCategories.delete(catId);
+                else openCategories.add(catId);
+                saveOpenCategories();
+                renderSidebar();
+            }
+
+            // CRUD categories
+            function findCategory(id) { return categories.find(c => c.id === id); }
+            function findPhrase(catId, phraseId) { const cat = findCategory(catId); return cat && cat.phrases.find(p => p.id === phraseId); }
+
+            async function openAddCategoryModal() {
+                const body = `<label>Nome da Categoria</label><input type="text" id="inputCatName" maxlength="80" placeholder="Ex: Joelho, Ombro...">`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Adicionar</button>`;
+                if (!await openModal('Nova Categoria', body, actions)) return;
+                let name = document.getElementById('inputCatName').value.trim();
+                while (!name) {
+                    setModalError('Obrigatório.');
+                    const retry = await openModal('Nova Categoria', body, actions);
+                    if (!retry) return;
+                    name = document.getElementById('inputCatName')?.value.trim() || '';
+                }
+                const newCat = { id: 'cat_' + Date.now(), name, phrases: [] };
+                categories.push(newCat);
+                openCategories.add(newCat.id);
+                saveCategories(); saveOpenCategories();
+                renderSidebar();
+                showToast(`Categoria "${name}" criada!`, 'success');
+            }
+
+            async function openEditCategoryModal(catId) {
+                const cat = findCategory(catId); if (!cat) return;
+                const body = `<label>Nome da Categoria</label><input type="text" id="inputCatName" value="${escapeHTML(cat.name)}" maxlength="80">`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Salvar</button>`;
+                if (!await openModal('Editar Categoria', body, actions)) return;
+                let name = document.getElementById('inputCatName').value.trim();
+                if (!name) setModalError('Obrigatório.');
+                while (!name) {
+                    if (!await openModal('Editar Categoria', `<label>Nome</label><input type="text" id="inputCatName2" value="${escapeHTML(cat.name)}">`, actions)) return;
+                    name = document.getElementById('inputCatName2')?.value.trim() || '';
+                }
+                cat.name = name;
+                saveCategories(); renderSidebar();
+                showToast('Categoria atualizada!', 'success');
+            }
+
+            async function confirmDeleteCategory(catId) {
+                const cat = findCategory(catId); if (!cat) return;
+                const body = `<p>Excluir <strong>${escapeHTML(cat.name)}</strong>? (${cat.phrases.length} frases)</p>`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-danger-text btn-sm" id="modalConfirm" style="background:var(--danger);color:#fff;">Excluir</button>`;
+                if (!await openModal('Excluir Categoria', body, actions)) return;
+                categories = categories.filter(c => c.id !== catId);
+                openCategories.delete(catId);
+                saveCategories(); saveOpenCategories(); renderSidebar();
+                showToast('Categoria excluída.', 'warning');
+            }
+
+            // Phrase CRUD (normal adding / editing via textarea – plain text)
+            async function openAddPhraseModal(catId) {
+                const cat = findCategory(catId); if (!cat) return;
+                const body = `<label>Nova Frase</label><textarea id="inputPhraseText" placeholder="Texto da frase..."></textarea>`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Adicionar</button>`;
+                if (!await openModal('Nova Frase', body, actions)) return;
+                let text = document.getElementById('inputPhraseText').value.trim();
+                while (!text) {
+                    setModalError('Obrigatório.');
+                    if (!await openModal('Nova Frase', body, actions)) return;
+                    text = document.getElementById('inputPhraseText')?.value.trim() || '';
+                }
+                cat.phrases.push({ id: 'phr_' + Date.now(), text });
+                saveCategories(); renderSidebar();
+                showToast('Frase adicionada!', 'success');
+            }
+
+            async function openEditPhraseModal(catId, phraseId) {
+                const phrase = findPhrase(catId, phraseId); if (!phrase) return;
+                const body = `<label>Editar Frase</label><textarea id="inputPhraseText">${escapeHTML(phrase.text)}</textarea>`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Salvar</button>`;
+                if (!await openModal('Editar Frase', body, actions)) return;
+                let text = document.getElementById('inputPhraseText').value.trim();
+                if (!text) setModalError('Obrigatório.');
+                while (!text) {
+                    if (!await openModal('Editar Frase', `<textarea id="inputPhraseText2">${escapeHTML(phrase.text)}</textarea>`, actions)) return;
+                    text = document.getElementById('inputPhraseText2')?.value.trim() || '';
+                }
+                phrase.text = text;
+                saveCategories(); renderSidebar();
+                showToast('Frase atualizada!', 'success');
+            }
+
+            async function confirmDeletePhrase(catId, phraseId) {
+                const phrase = findPhrase(catId, phraseId); if (!phrase) return;
+                const body = `<p>Excluir frase?</p><p style="color:var(--text-muted);font-style:italic;">"${escapeHTML(stripHTML(phrase.text))}"</p>`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-danger-text btn-sm" id="modalConfirm" style="background:var(--danger);color:#fff;">Excluir</button>`;
+                if (!await openModal('Excluir Frase', body, actions)) return;
+                const cat = findCategory(catId);
+                if (cat) cat.phrases = cat.phrases.filter(p => p.id !== phraseId);
+                saveCategories(); renderSidebar();
+                showToast('Frase excluída.', 'warning');
+            }
+
+            // Save selection as formatted phrase
+            async function saveSelectionAsPhrase() {
+                const selection = window.getSelection();
+                if (!selection.rangeCount || selection.isCollapsed) {
+                    showToast('Selecione um texto formatado no editor primeiro.', 'warning');
+                    return;
+                }
+                const range = selection.getRangeAt(0);
+                if (!editor.contains(range.commonAncestorContainer)) {
+                    showToast('A seleção deve estar dentro do laudo.', 'warning');
+                    return;
+                }
+                const fragment = range.cloneContents();
+                const div = document.createElement('div');
+                div.appendChild(fragment);
+                const html = div.innerHTML;
+
+                if (categories.length === 0) {
+                    showToast('Crie ao menos uma categoria antes de salvar frases.', 'warning');
+                    return;
+                }
+                const options = categories.map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+                const body = `
+                    <label>Categoria de destino</label>
+                    <select id="selectCategory">${options}</select>
+                    <label>Pré-visualização (texto formatado)</label>
+                    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;max-height:100px;overflow:auto;">${html}</div>
+                `;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Salvar Frase</button>`;
+                if (!await openModal('Salvar Seleção como Frase', body, actions)) return;
+                const catId = document.getElementById('selectCategory').value;
+                const cat = findCategory(catId);
+                if (!cat) return;
+                cat.phrases.push({ id: 'phr_' + Date.now(), text: html });
+                saveCategories(); renderSidebar();
+                showToast('Frase formatada salva!', 'success');
+            }
+
+            // Insert phrase (with formatting and line break)
+            function insertPhraseIntoEditor(htmlContent) {
+                editor.focus();
+                const selection = window.getSelection();
+                let range;
+                if (selection.rangeCount > 0) {
+                    range = selection.getRangeAt(0);
+                    if (!editor.contains(range.commonAncestorContainer)) {
+                        range = document.createRange();
+                        range.selectNodeContents(editor);
+                        range.collapse(false);
+                    }
+                } else {
+                    range = document.createRange();
+                    range.selectNodeContents(editor);
+                    range.collapse(false);
+                }
+                range.deleteContents();
+
+                // Create temporary container to parse HTML
+                const temp = document.createElement('span');
+                temp.innerHTML = htmlContent;
+                // Append a <br> to ensure line break after phrase
+                const br = document.createElement('br');
+                temp.appendChild(br);
+
+                // Move children to document fragment
+                const frag = document.createDocumentFragment();
+                while (temp.firstChild) frag.appendChild(temp.firstChild);
+
+                range.insertNode(frag);
+                // Move cursor after the inserted fragment
+                range.setStartAfter(frag);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                scheduleEditorSave();
+                editor.style.backgroundColor = '#2d3b4f';
+                setTimeout(() => { editor.style.backgroundColor = ''; }, 400);
+            }
+
+            // Toolbar commands
+            function execCommand(command, value = null) {
+                editor.focus();
+                document.execCommand(command, false, value);
+                scheduleEditorSave();
+                updateToolbarState();
+            }
+
+            function updateToolbarState() {
+                ['bold','italic','underline','justifyLeft','justifyCenter','justifyRight','justifyFull'].forEach(cmd => {
+                    const btn = document.querySelector(`.tool-btn[data-command="${cmd}"]`);
+                    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+                });
+            }
+
+            function applyLineSpacing(value) {
+                editor.focus();
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                let node = selection.getRangeAt(0).commonAncestorContainer;
+                while (node && node !== editor && !['P','DIV','H2','UL','OL','LI'].includes(node.nodeName)) {
+                    node = node.parentNode;
+                }
+                if (node && node !== editor) {
+                    node.style.lineHeight = value;
+                }
+                scheduleEditorSave();
+            }
+
+            // Export/Import
+            function exportCategories() {
+                const blob = new Blob([JSON.stringify(categories, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `frases_laudos_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                showToast('Exportado!', 'success');
+            }
+
+            function importCategories(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!Array.isArray(data)) throw new Error();
+                        confirmImport(data);
+                    } catch { showToast('JSON inválido.', 'error'); }
+                };
+                reader.readAsText(file);
+            }
+
+            async function confirmImport(importedData) {
+                const body = `<p>${importedData.length} categorias. Modo:</p>
+                    <label><input type="radio" name="importMode" value="replace" checked> Substituir</label>
+                    <label><input type="radio" name="importMode" value="merge"> Mesclar</label>`;
+                const actions = `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-accent btn-sm" id="modalConfirm">Importar</button>`;
+                if (!await openModal('Importar', body, actions)) return;
+                const mode = document.querySelector('input[name="importMode"]:checked')?.value;
+                if (mode === 'replace') categories = importedData;
+                else {
+                    const ids = new Set(categories.map(c => c.id));
+                    importedData.forEach(ic => {
+                        if (ids.has(ic.id)) {
+                            const exist = categories.find(c => c.id === ic.id);
+                            const phrIds = new Set(exist.phrases.map(p => p.id));
+                            ic.phrases.forEach(p => { if (!phrIds.has(p.id)) exist.phrases.push(p); });
+                        } else { categories.push(ic); ids.add(ic.id); }
+                    });
+                }
+                openCategories.clear();
+                categories.slice(0,3).forEach(c => openCategories.add(c.id));
+                saveCategories(); saveOpenCategories(); renderSidebar();
+                showToast('Importado!', 'success');
+            }
+
+            // Utilities
+            function escapeHTML(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+            function stripHTML(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
+
+            // Event listeners
+            editor.addEventListener('input', () => { scheduleEditorSave(); updateToolbarState(); });
+            editor.addEventListener('keyup', updateToolbarState);
+            editor.addEventListener('click', updateToolbarState);
+            editor.addEventListener('paste', () => setTimeout(scheduleEditorSave, 100));
+            editor.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && ['b','i','u','s'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                    if (e.key.toLowerCase() === 's') { saveEditorContent(); showToast('Salvo.', 'info'); }
+                    else execCommand(e.key.toLowerCase() === 'b' ? 'bold' : e.key.toLowerCase() === 'i' ? 'italic' : 'underline');
+                }
+            });
+
+            document.querySelectorAll('.tool-btn[data-command]').forEach(btn => {
+                btn.addEventListener('click', () => execCommand(btn.dataset.command, btn.dataset.value || null));
+                btn.addEventListener('mousedown', e => e.preventDefault());
+            });
+
+            foreColorPicker.addEventListener('input', () => execCommand('foreColor', foreColorPicker.value));
+            lineSpacingSelect.addEventListener('change', () => applyLineSpacing(lineSpacingSelect.value));
+            btnSaveSelection.addEventListener('click', saveSelectionAsPhrase);
+
+            document.getElementById('btnClearEditor').addEventListener('click', async () => {
+                if (!editor.textContent.trim()) return showToast('Editor vazio.', 'info');
+                if (await openModal('Limpar Laudo', '<p>Limpar todo o conteúdo?</p>', `<button class="btn btn-outline btn-sm" id="modalCancel">Cancelar</button><button class="btn btn-danger-text btn-sm" id="modalConfirm" style="background:var(--danger);color:#fff;">Limpar</button>`)) {
+                    editor.innerHTML = '';
+                    saveEditorContent();
+                    showToast('Laudo limpo.', 'warning');
+                }
+            });
+
+            document.getElementById('btnExport').addEventListener('click', exportCategories);
+            document.getElementById('btnImport').addEventListener('click', () => importFileInput.click());
+            importFileInput.addEventListener('change', () => {
+                if (importFileInput.files.length) { importCategories(importFileInput.files[0]); importFileInput.value = ''; }
+            });
+
+            document.getElementById('btnAddCategory').addEventListener('click', openAddCategoryModal);
+            document.getElementById('btnAddCategoryBottom').addEventListener('click', openAddCategoryModal);
+
+            searchInput.addEventListener('input', () => {
+                searchQuery = searchInput.value;
+                updateSearchClearButton();
+                filterCategoriesAndPhrases();
+            });
+            searchClearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchQuery = '';
+                updateSearchClearButton();
+                filterCategoriesAndPhrases();
+                searchInput.focus();
+            });
+
+            modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(null); });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal(null); });
+            modalActions.addEventListener('click', e => {
+                const btn = e.target.closest('button');
+                if (btn?.id === 'modalConfirm') closeModal(true);
+                else if (btn?.id === 'modalCancel') closeModal(null);
+            });
+
+            // Init
+            function init() {
+                loadCategories();
+                loadOpenCategories();
+                renderSidebar();
+                loadEditorContent();
+                updateToolbarState();
+                updateSearchClearButton();
+                lineSpacingSelect.value = '1.5';
+                foreColorPicker.value = '#cdd6e0';
+                editorStatus.textContent = '💾 Salvamento automático ativo';
+            }
+            window.addEventListener('beforeunload', saveEditorContent);
+            setInterval(() => { if (saveTimeout) { clearTimeout(saveTimeout); saveEditorContent(); saveTimeout = null; } }, 10000);
+            init();
+        })();
+    </script>
+</body>
+</html>
